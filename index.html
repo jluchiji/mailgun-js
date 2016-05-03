@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Mailgun-js by bojand</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Mailgun-js</h1>
+      <h2 class="project-tagline">A simple Node.js helper module for Mailgun API.</h2>
+      <a href="https://github.com/bojand/mailgun-js" class="btn">View on GitHub</a>
+      <a href="https://github.com/bojand/mailgun-js/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/bojand/mailgun-js/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="mailgunjs" class="anchor" href="#mailgunjs" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>mailgun.js</h1>
+
+<p>Simple Node.js module for <a href="http://www.mailgun.com">Mailgun</a>.</p>
+
+<p><a href="https://nodei.co/npm/mailgun-js/"><img src="https://nodei.co/npm/mailgun-js.png?downloads=true&amp;stars=true" alt="NPM"></a></p>
+
+<p><a href="https://nodei.co/npm/mailgun-js/"><img src="https://nodei.co/npm-dl/mailgun-js.png" alt="NPM"></a></p>
+
+<h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
+
+<p><code>npm install mailgun-js</code></p>
+
+<h2>
+<a id="usage-overview" class="anchor" href="#usage-overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage overview</h2>
+
+<p>Please see <a href="https://documentation.mailgun.com">Mailgun Documentation</a> for full Mailgun API reference.</p>
+
+<p>This module works by providing proxy objects for interacting with different resources through the Mailgun API.
+Most methods take a <code>data</code> parameter, which is a Javascript object that would contain the arguments for the Mailgun API.
+All methods take a final parameter callback with two parameters: <code>error</code>, and <code>body</code>.
+We try to parse the <code>body</code> into a javascript object, and return it to the callback as such for easier use and inspection by the client.
+If there was an error a new <code>Error</code> object will be passed to the callback in the <code>error</code> parameter.
+If the error originated from the (Mailgun) server, the response code will be available in the <code>statusCode</code> property
+of the <code>error</code> object passed in the callback.
+See the <code>/docs</code> folder for detailed documentation. For full usage examples see the <code>/test</code> folder.</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> api_key <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>key-XXXXXXXXXXXXXXXXXXXXXXX<span class="pl-pds">'</span></span>;
+<span class="pl-k">var</span> domain <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>mydomain.mailgun.org<span class="pl-pds">'</span></span>;
+<span class="pl-k">var</span> mailgun <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>mailgun-js<span class="pl-pds">'</span></span>)({apiKey<span class="pl-k">:</span> api_key, domain<span class="pl-k">:</span> domain});
+
+<span class="pl-k">var</span> data <span class="pl-k">=</span> {
+  from<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Excited User &lt;me@samples.mailgun.org&gt;<span class="pl-pds">'</span></span>,
+  to<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>serobnic@mail.ru<span class="pl-pds">'</span></span>,
+  subject<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Hello<span class="pl-pds">'</span></span>,
+  text<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Testing some Mailgun awesomness!<span class="pl-pds">'</span></span>
+};
+
+<span class="pl-smi">mailgun</span>.<span class="pl-en">messages</span>().<span class="pl-c1">send</span>(data, <span class="pl-k">function</span> (<span class="pl-smi">error</span>, <span class="pl-smi">body</span>) {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(body);
+});</pre></div>
+
+<p>Messages stored using the Mailgun <code>store()</code> action can be retrieved using <code>messages(&lt;message_key&gt;).info()</code> function.
+Optionally the MIME representation of the message can be retrieved if <code>MIME</code> argument is passed in and set to <code>true</code>.</p>
+
+<p>Something more elaborate. Get mailing list info, create a member and get mailing list members and update member.
+Notice that the proxy objects can be reused.</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> list <span class="pl-k">=</span> <span class="pl-smi">mailgun</span>.<span class="pl-en">lists</span>(<span class="pl-s"><span class="pl-pds">'</span>mylist@mycompany.com<span class="pl-pds">'</span></span>);
+
+<span class="pl-smi">list</span>.<span class="pl-en">info</span>(<span class="pl-k">function</span> (<span class="pl-smi">err</span>, <span class="pl-smi">data</span>) {
+  <span class="pl-c">// `data` is mailing list info</span>
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(data);
+});
+
+<span class="pl-k">var</span> bob <span class="pl-k">=</span> {
+  subscribed<span class="pl-k">:</span> <span class="pl-c1">true</span>,
+  address<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>bob@gmail.com<span class="pl-pds">'</span></span>,
+  name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Bob Bar<span class="pl-pds">'</span></span>,
+  vars<span class="pl-k">:</span> {age<span class="pl-k">:</span> <span class="pl-c1">26</span>}
+};
+
+<span class="pl-smi">list</span>.<span class="pl-en">members</span>().<span class="pl-en">create</span>(bob, <span class="pl-k">function</span> (<span class="pl-smi">err</span>, <span class="pl-smi">data</span>) {
+  <span class="pl-c">// `data` is the member details</span>
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(data);
+});
+
+<span class="pl-smi">list</span>.<span class="pl-en">members</span>().<span class="pl-en">list</span>(<span class="pl-k">function</span> (<span class="pl-smi">err</span>, <span class="pl-smi">members</span>) {
+  <span class="pl-c">// `members` is the list of members</span>
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(members);
+});
+
+<span class="pl-smi">list</span>.<span class="pl-en">members</span>(<span class="pl-s"><span class="pl-pds">'</span>bob@gmail.com<span class="pl-pds">'</span></span>).<span class="pl-en">update</span>({ name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Foo Bar<span class="pl-pds">'</span></span> }, <span class="pl-k">function</span> (<span class="pl-smi">err</span>, <span class="pl-smi">body</span>) {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(body);
+});</pre></div>
+
+<h4>
+<a id="options" class="anchor" href="#options" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Options</h4>
+
+<p><code>Mailgun</code> object constructor options:</p>
+
+<ul>
+<li>
+<code>apiKey</code> - Your Mailgun API KEY</li>
+<li>
+<code>domain</code> - Your Mailgun Domain</li>
+<li>
+<code>mute</code> - Set to <code>true</code> if you wish to mute the console error logs in <code>validateWebhook()</code> function</li>
+<li>
+<code>proxy</code> - The proxy URI in format <code>http[s]://[auth@]host:port</code>. ex: <code>'http://proxy.example.com:8080'</code>
+</li>
+<li>
+<code>timeout</code> - Request timeout in milliseconds</li>
+<li>
+<code>host</code> - the mailgun host (default: 'api.mailgun.net')</li>
+<li>
+<code>protocol</code> - the mailgun protocol (default: 'https:', possible values: 'http:' or 'https:')</li>
+<li>
+<code>port</code> - the mailgun port (default: '443')</li>
+<li>
+<code>endpoint</code> - the mailgun host (default: '/v3')</li>
+<li>
+<code>retry</code> - the number of <strong>total attempts</strong> to do when performing requests. Default is <code>1</code>. 
+That is, we will try an operation only once with no retries on error.</li>
+</ul>
+
+<h4>
+<a id="attachments" class="anchor" href="#attachments" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Attachments</h4>
+
+<p>Attachments can be sent using either the <code>attachment</code> or <code>inline</code> parameters. <code>inline</code> parameter can be use to send an
+attachment with <code>inline</code> disposition. It can be used to send inline images. Both types are supported with same mechanisms
+as described, we will just use <code>attachment</code> parameter in the documentation below but same stands for <code>inline</code>.</p>
+
+<p>Sending attachments can be done in a few ways. We can use the path to a file in the <code>attachment</code> parameter.
+If the <code>attachment</code> parameter is of type <code>string</code> it is assumed to be the path to a file.</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> filepath <span class="pl-k">=</span> <span class="pl-smi">path</span>.<span class="pl-c1">join</span>(<span class="pl-c1">__dirname</span>, <span class="pl-s"><span class="pl-pds">'</span>mailgun_logo.png<span class="pl-pds">'</span></span>);
+
+<span class="pl-k">var</span> data <span class="pl-k">=</span> {
+  from<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Excited User &lt;me@samples.mailgun.org&gt;<span class="pl-pds">'</span></span>,
+  to<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>serobnic@mail.ru<span class="pl-pds">'</span></span>,
+  subject<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Hello<span class="pl-pds">'</span></span>,
+  text<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Testing some Mailgun awesomness!<span class="pl-pds">'</span></span>,
+  attachment<span class="pl-k">:</span> filepath
+};
+
+<span class="pl-smi">mailgun</span>.<span class="pl-en">messages</span>().<span class="pl-c1">send</span>(data, <span class="pl-k">function</span> (<span class="pl-smi">error</span>, <span class="pl-smi">body</span>) {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(body);
+});</pre></div>
+
+<p>We can pass a buffer (has to be a <code>Buffer</code> object) of the data. If a buffer is used the data will be attached using a
+generic filename "file".</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> filepath <span class="pl-k">=</span> <span class="pl-smi">path</span>.<span class="pl-c1">join</span>(<span class="pl-c1">__dirname</span>, <span class="pl-s"><span class="pl-pds">'</span>mailgun_logo.png<span class="pl-pds">'</span></span>);
+<span class="pl-k">var</span> file <span class="pl-k">=</span> <span class="pl-smi">fs</span>.<span class="pl-en">readFileSync</span>(filepath);
+
+<span class="pl-k">var</span> data <span class="pl-k">=</span> {
+  from<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Excited User &lt;me@samples.mailgun.org&gt;<span class="pl-pds">'</span></span>,
+  to<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>serobnic@mail.ru<span class="pl-pds">'</span></span>,
+  subject<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Hello<span class="pl-pds">'</span></span>,
+  text<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Testing some Mailgun awesomness!<span class="pl-pds">'</span></span>,
+  attachment<span class="pl-k">:</span> file
+};
+
+<span class="pl-smi">mailgun</span>.<span class="pl-en">messages</span>().<span class="pl-c1">send</span>(data, <span class="pl-k">function</span> (<span class="pl-smi">error</span>, <span class="pl-smi">body</span>) {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(body);
+});</pre></div>
+
+<p>We can also pass in a stream of the data. This is useful if you're attaching a file from the internet.</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> request <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>request<span class="pl-pds">'</span></span>);
+<span class="pl-k">var</span> file <span class="pl-k">=</span> <span class="pl-en">request</span>(<span class="pl-s"><span class="pl-pds">"</span>https://www.google.ca/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png<span class="pl-pds">"</span></span>);
+
+<span class="pl-k">var</span> data <span class="pl-k">=</span> {
+  from<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Excited User &lt;me@samples.mailgun.org&gt;<span class="pl-pds">'</span></span>,
+  to<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>serobnic@mail.ru<span class="pl-pds">'</span></span>,
+  subject<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Hello<span class="pl-pds">'</span></span>,
+  text<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Testing some Mailgun awesomness!<span class="pl-pds">'</span></span>,
+  attachment<span class="pl-k">:</span> file
+};
+
+<span class="pl-smi">mailgun</span>.<span class="pl-en">messages</span>().<span class="pl-c1">send</span>(data, <span class="pl-k">function</span> (<span class="pl-smi">error</span>, <span class="pl-smi">body</span>) {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(body);
+});</pre></div>
+
+<p>Finally we provide a <code>Mailgun.Attachment</code> class to add attachments with a bit more customization. The Attachment
+constructor takes an <code>options</code> object. The <code>options</code> parameters can have the following fields:</p>
+
+<ul>
+<li>
+<code>data</code> - can be one of
+
+<ul>
+<li>a string representing file path to the attachment</li>
+<li>a buffer of file data</li>
+<li>an instance of <code>Readable</code> which means it is a readable stream.</li>
+</ul>
+</li>
+<li>
+<code>filename</code> - the file name to be used for the attachment. Default is 'file'</li>
+<li>
+<code>contentType</code> - the content type. Required for case of <code>Readable</code> data. Ex. <code>image/jpg</code>.</li>
+<li>
+<code>knownLength</code> - the content length in bytes. Required for case of <code>Readable</code> data.</li>
+</ul>
+
+<p>If an attachment object does not satisfy those valid conditions it is ignored. Multiple attachments can be sent by
+passing an array in the <code>attachment</code> parameter. The array elements can be of any one of the valid types and each one
+will be handled appropriately.</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> mailgun <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>mailgun-js<span class="pl-pds">'</span></span>)({apiKey<span class="pl-k">:</span> api_key, domain<span class="pl-k">:</span> domain});
+<span class="pl-k">var</span> filename <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>mailgun_logo.png<span class="pl-pds">'</span></span>;
+<span class="pl-k">var</span> filepath <span class="pl-k">=</span> <span class="pl-smi">path</span>.<span class="pl-c1">join</span>(<span class="pl-c1">__dirname</span>, filename);
+<span class="pl-k">var</span> file <span class="pl-k">=</span> <span class="pl-smi">fs</span>.<span class="pl-en">readFileSync</span>(filepath);
+
+<span class="pl-k">var</span> attch <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">mailgun.Attachment</span>({data<span class="pl-k">:</span> file, filename<span class="pl-k">:</span> filename});
+
+<span class="pl-k">var</span> data <span class="pl-k">=</span> {
+  from<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Excited User &lt;me@samples.mailgun.org&gt;<span class="pl-pds">'</span></span>,
+  to<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>serobnic@mail.ru<span class="pl-pds">'</span></span>,
+  subject<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Hello<span class="pl-pds">'</span></span>,
+  text<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Testing some Mailgun awesomness!<span class="pl-pds">'</span></span>,
+  attachment<span class="pl-k">:</span> attch
+};
+
+<span class="pl-smi">mailgun</span>.<span class="pl-en">messages</span>().<span class="pl-c1">send</span>(data, <span class="pl-k">function</span> (<span class="pl-smi">error</span>, <span class="pl-smi">body</span>) {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(body);
+});</pre></div>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> mailgun <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>mailgun-js<span class="pl-pds">'</span></span>)({apiKey<span class="pl-k">:</span> api_key, domain<span class="pl-k">:</span> domain});
+<span class="pl-k">var</span> filename <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>mailgun_logo.png<span class="pl-pds">'</span></span>;
+<span class="pl-k">var</span> filepath <span class="pl-k">=</span> <span class="pl-smi">path</span>.<span class="pl-c1">join</span>(<span class="pl-c1">__dirname</span>, filename);
+<span class="pl-k">var</span> fileStream <span class="pl-k">=</span> <span class="pl-smi">fs</span>.<span class="pl-en">createReadStream</span>(filepath);
+<span class="pl-k">var</span> fileStat <span class="pl-k">=</span> <span class="pl-smi">fs</span>.<span class="pl-en">statSync</span>(filepath);
+
+<span class="pl-smi">msg</span>.<span class="pl-smi">attachment</span> <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">mailgun.Attachment</span>({
+  data<span class="pl-k">:</span> fileStream,
+  filename<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>my_custom_name.png<span class="pl-pds">'</span></span>,
+  knownLength<span class="pl-k">:</span> <span class="pl-smi">fileStat</span>.<span class="pl-c1">size</span>,
+  contentType<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>image/png<span class="pl-pds">'</span></span>});
+
+<span class="pl-smi">mailgun</span>.<span class="pl-en">messages</span>().<span class="pl-c1">send</span>(data, <span class="pl-k">function</span> (<span class="pl-smi">error</span>, <span class="pl-smi">body</span>) {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(body);
+});</pre></div>
+
+<h4>
+<a id="sending-mime-messages" class="anchor" href="#sending-mime-messages" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sending MIME messages</h4>
+
+<p>Sending messages in MIME format can be accomplished using the <code>sendMime()</code> function of the <code>messages()</code> proxy object.
+The <code>data</code> parameter for the function has to have <code>to</code> and <code>message</code> properties. The <code>message</code> property can be a full
+file path to the MIME file, a stream of the file (that is a <code>Readable</code> object), or a string representation of the MIME
+message. To build a MIME string you can use the <a href="https://www.npmjs.org/package/mailcomposer">Mail Composer</a> library.
+Some examples:</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> domain <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>mydomain.mailgun.org<span class="pl-pds">'</span></span>;
+<span class="pl-k">var</span> mailgun <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>mailgun-js<span class="pl-pds">'</span></span>)({ apiKey<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>YOUR API KEY<span class="pl-pds">"</span></span>, domain<span class="pl-k">:</span> domain });
+<span class="pl-k">var</span> mailcomposer <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>mailcomposer<span class="pl-pds">'</span></span>);
+
+<span class="pl-k">var</span> mail <span class="pl-k">=</span> <span class="pl-en">mailcomposer</span>({
+  from<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>you@samples.mailgun.org<span class="pl-pds">'</span></span>,
+  to<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>mm@samples.mailgun.org<span class="pl-pds">'</span></span>,
+  subject<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Test email subject<span class="pl-pds">'</span></span>,
+  body<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Test email text<span class="pl-pds">'</span></span>,
+  html<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>&lt;b&gt; Test email text &lt;/b&gt;<span class="pl-pds">'</span></span>
+});
+
+<span class="pl-smi">mail</span>.<span class="pl-en">build</span>(<span class="pl-k">function</span>(<span class="pl-smi">mailBuildError</span>, <span class="pl-smi">message</span>) {
+
+    <span class="pl-k">var</span> dataToSend <span class="pl-k">=</span> {
+        to<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>mm@samples.mailgun.org<span class="pl-pds">'</span></span>,
+        message<span class="pl-k">:</span> <span class="pl-smi">message</span>.<span class="pl-c1">toString</span>(<span class="pl-s"><span class="pl-pds">'</span>ascii<span class="pl-pds">'</span></span>)
+    };
+
+    <span class="pl-smi">mailgun</span>.<span class="pl-en">messages</span>().<span class="pl-en">sendMime</span>(dataToSend, <span class="pl-k">function</span> (<span class="pl-smi">sendError</span>, <span class="pl-smi">body</span>) {
+        <span class="pl-k">if</span> (sendError) {
+            <span class="pl-en">console</span>.<span class="pl-c1">log</span>(sendError);
+            <span class="pl-k">return</span>;
+        }
+    });
+});</pre></div>
+
+<h4>
+<a id="referencing-mime-file" class="anchor" href="#referencing-mime-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Referencing MIME file</h4>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> filepath <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>/path/to/message.mime<span class="pl-pds">'</span></span>;
+
+<span class="pl-k">var</span> data <span class="pl-k">=</span> {
+  to<span class="pl-k">:</span> <span class="pl-smi">fixture</span>.<span class="pl-smi">message</span>.<span class="pl-smi">to</span>,
+  message<span class="pl-k">:</span> filepath
+};
+
+<span class="pl-smi">mailgun</span>.<span class="pl-en">messages</span>().<span class="pl-en">sendMime</span>(data, <span class="pl-k">function</span> (<span class="pl-smi">err</span>, <span class="pl-smi">body</span>) {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(body);
+});</pre></div>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> filepath <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>/path/to/message.mime<span class="pl-pds">'</span></span>;
+
+<span class="pl-k">var</span> data <span class="pl-k">=</span> {
+  to<span class="pl-k">:</span> <span class="pl-smi">fixture</span>.<span class="pl-smi">message</span>.<span class="pl-smi">to</span>,
+  message<span class="pl-k">:</span> <span class="pl-smi">fs</span>.<span class="pl-en">createReadStream</span>(filepath)
+};
+
+<span class="pl-smi">mailgun</span>.<span class="pl-en">messages</span>().<span class="pl-en">sendMime</span>(data, <span class="pl-k">function</span> (<span class="pl-smi">err</span>, <span class="pl-smi">body</span>) {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(body);
+});</pre></div>
+
+<h4>
+<a id="creating-mailing-list-members" class="anchor" href="#creating-mailing-list-members" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Creating mailing list members</h4>
+
+<p><code>members().create({data})</code> will create a mailing list member with <code>data</code>. Mailgun also offers a resource for creating
+members in bulk. Doing a <code>POST</code> to <code>/lists/&lt;address&gt;/members.json</code> adds multiple members, up to 1,000 per call,
+to a Mailing List. This can be accomplished using <code>members().add()</code>.</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> members <span class="pl-k">=</span> [
+  {
+    address<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Alice &lt;alice@example.com&gt;<span class="pl-pds">'</span></span>,
+    vars<span class="pl-k">:</span> { age<span class="pl-k">:</span> <span class="pl-c1">26</span> }
+  },
+  {
+    name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Bob<span class="pl-pds">'</span></span>,
+    address<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>bob@example.com<span class="pl-pds">'</span></span>,
+    vars<span class="pl-k">:</span> { age<span class="pl-k">:</span> <span class="pl-c1">34</span> }
+  }
+];
+
+<span class="pl-smi">mailgun</span>.<span class="pl-en">lists</span>(<span class="pl-s"><span class="pl-pds">'</span>mylist@mycompany.com<span class="pl-pds">'</span></span>).<span class="pl-en">members</span>().<span class="pl-c1">add</span>({ members<span class="pl-k">:</span> members, subscribed<span class="pl-k">:</span> <span class="pl-c1">true</span> }, <span class="pl-k">function</span> (<span class="pl-smi">err</span>, <span class="pl-smi">body</span>) {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(body);
+});</pre></div>
+
+<h2>
+<a id="generic-requests" class="anchor" href="#generic-requests" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Generic requests</h2>
+
+<p>Mailgun-js also provides helper methods to allow users to interact with parts of the api that are not exposed already.
+These are not tied to the domain passed in the constructor, and thus require the full path with the domain
+passed in the <code>resource</code> argument.</p>
+
+<ul>
+<li>
+<code>mailgun.get(resource, data, callback)</code> - sends GET request to the specified resource on api.</li>
+<li>
+<code>mailgun.post(resource, data, callback)</code> - sends POST request to the specified resource on api.</li>
+<li>
+<code>mailgun.delete(resource, data, callback)</code> - sends DELETE request to the specified resource on api.</li>
+<li>
+<code>mailgun.put(resource, data, callback)</code> - sends PUT request to the specified resource on api.</li>
+</ul>
+
+<p>Example: Get some stats</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-smi">mailgun</span>.<span class="pl-en">get</span>(<span class="pl-s"><span class="pl-pds">'</span>/samples.mailgun.org/stats<span class="pl-pds">'</span></span>, { <span class="pl-c1">event</span><span class="pl-k">:</span> [<span class="pl-s"><span class="pl-pds">'</span>sent<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>delivered<span class="pl-pds">'</span></span>] }, <span class="pl-k">function</span> (<span class="pl-smi">error</span>, <span class="pl-smi">body</span>) {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(body);
+});</pre></div>
+
+<h2>
+<a id="promises" class="anchor" href="#promises" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Promises</h2>
+
+<p>Module works with Node-style callbacks, but also implements promises with the <a href="http://github.com/kriskowal/q">Q</a> library.</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-smi">mailgun</span>.<span class="pl-en">lists</span>(<span class="pl-s"><span class="pl-pds">'</span>mylist@mydomain.com<span class="pl-pds">'</span></span>).<span class="pl-en">info</span>().<span class="pl-en">then</span>(<span class="pl-k">function</span> (<span class="pl-smi">data</span>) {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(data);
+}, <span class="pl-k">function</span> (<span class="pl-smi">err</span>) {
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(err);
+});</pre></div>
+
+<p>The function passed as 2nd argument is optional and not needed if you don't care about the fail case.</p>
+
+<h2>
+<a id="webhook-validation" class="anchor" href="#webhook-validation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Webhook validation</h2>
+
+<p>The Mailgun object also has a helper function for validating Mailgun Webhook requests
+(as per the <a href="http://documentation.mailgun.com/user_manual.html#securing-webhooks">mailgun docs for securing webhooks</a>).
+This code came from <a href="https://gist.github.com/coolaj86/81a3b61353d2f0a2552c">this gist</a>.</p>
+
+<p>Example usage:</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> mailgun <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>mailgun-js<span class="pl-pds">'</span></span>)({apiKey<span class="pl-k">:</span> api_key, domain<span class="pl-k">:</span> domain});
+
+<span class="pl-k">function</span> <span class="pl-en">router</span>(<span class="pl-smi">app</span>) {
+  <span class="pl-smi">app</span>.<span class="pl-en">post</span>(<span class="pl-s"><span class="pl-pds">'</span>/webhooks/mailgun/*<span class="pl-pds">'</span></span>, <span class="pl-k">function</span> (<span class="pl-smi">req</span>, <span class="pl-smi">res</span>, <span class="pl-smi">next</span>) {
+    <span class="pl-k">var</span> body <span class="pl-k">=</span> <span class="pl-smi">req</span>.<span class="pl-c1">body</span>;
+
+    <span class="pl-k">if</span> (<span class="pl-k">!</span><span class="pl-smi">mailgun</span>.<span class="pl-en">validateWebhook</span>(<span class="pl-smi">body</span>.<span class="pl-smi">timestamp</span>, <span class="pl-smi">body</span>.<span class="pl-smi">token</span>, <span class="pl-smi">body</span>.<span class="pl-smi">signature</span>)) {
+      <span class="pl-en">console</span>.<span class="pl-c1">error</span>(<span class="pl-s"><span class="pl-pds">'</span>Request came, but not from Mailgun<span class="pl-pds">'</span></span>);
+      <span class="pl-smi">res</span>.<span class="pl-c1">send</span>({ error<span class="pl-k">:</span> { message<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>Invalid signature. Are you even Mailgun?<span class="pl-pds">'</span></span> } });
+      <span class="pl-k">return</span>;
+    }
+
+    <span class="pl-en">next</span>();
+  });
+
+  <span class="pl-smi">app</span>.<span class="pl-en">post</span>(<span class="pl-s"><span class="pl-pds">'</span>/webhooks/mailgun/catchall<span class="pl-pds">'</span></span>, <span class="pl-k">function</span> (<span class="pl-smi">req</span>, <span class="pl-smi">res</span>) {
+    <span class="pl-c">// actually handle request here</span>
+  });
+}</pre></div>
+
+<h2>
+<a id="tests" class="anchor" href="#tests" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Tests</h2>
+
+<p>To run the test suite you must first have a Mailgun account with a domain setup. Then create a file named <em>./test/auth.json</em>, which contains your credentials as JSON, for example:</p>
+
+<div class="highlight highlight-source-json"><pre>{ <span class="pl-s"><span class="pl-pds">"</span>api_key<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>key-XXXXXXXXXXXXXXXXXXXXXXX<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>domain<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>mydomain.mailgun.org<span class="pl-pds">"</span></span> }</pre></div>
+
+<p>You should edit <em>./test/fixture.json</em> and modify the data to match your context.</p>
+
+<p>Then install the dev dependencies and execute the test suite:</p>
+
+<pre><code>$ npm install
+$ npm test
+</code></pre>
+
+<p>The tests will call Mailgun API, and will send a test email, create route(s), mailing list and mailing list member.</p>
+
+<h2>
+<a id="notes" class="anchor" href="#notes" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Notes</h2>
+
+<p>This project is not endorsed by or affiliated with <a href="http://www.mailgun.com">Mailgun</a>.
+The general design and some code was heavily inspired by <a href="https://github.com/jclem/node-heroku-client">node-heroku-client</a>.</p>
+
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h2>
+
+<p>Copyright 2012, 2013, 2014 OneLobby</p>
+
+<p>Licensed under the MIT License.</p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/bojand/mailgun-js">Mailgun-js</a> is maintained by <a href="https://github.com/bojand">bojand</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
